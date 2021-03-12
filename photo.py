@@ -22,14 +22,15 @@ while (cd.error_code == '0') & cd.next():
     cd_list.append(cd.get_row_data())
 result1 = pd.DataFrame(cd_list, columns=cd.fields)
 print(result1)
-result1 = result1.drop([0,4700],inplace=True)
+result1.drop([i for i in range(0,4700)],inplace=True)
 print(result1)
-result1 = result1.drop(’code_name‘,axis=1)
-#del result1['code_name']
-
+#result1 = result1.drop(’code_name‘,axis=1)
+del result1['code_name']
 print(result1)
 
-#esult1 = result1['tradeStatus'].astype(float)
+#### 转换数据型 ####
+result1 = result1['tradeStatus'].astype(float)
+#### 生成图表 ####
 result1.plot(kind='bar')
 plt.show()
 
