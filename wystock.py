@@ -29,7 +29,6 @@ result1.drop([i for i in range(0,4700)],inplace=True)
 rlist = result1.code.values.tolist()
 # 求数组长度 rnum = len(rlist)
 data_list = []
-
 # 遍历list
 for r in rlist:
 	rs = bs.query_history_k_data_plus(r,
@@ -90,13 +89,18 @@ for r in Sh:
         result_c = float(result_c)
         result_cc = result_c/close_Shh
         result_cs.append(result_cc)
-print(result_cs[0])
-#result_css = pd.DataFrame(result_cs,columns=['code','close'])
+
+print(result_cs.index)
+print(result_cs)
+#for result_cs_Element in result_cs:
+#    print(type(result_cs_Element))
+#result_css = pd.DataFrame(result_cs).set_index('code')
+#print(result_css)
 #result['new'] = result_cs
 #print(result_css)
 #图表输出
-result_cs.plot
-plt.show()
+#result_cs.plot
+#plt.show()
 
 
 #### 结果集输出到csv文件 ####
