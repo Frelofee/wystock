@@ -7,6 +7,9 @@ import numpy as np
 import baostock as bs
 import pandas as pd
 from openpyxl import *
+import matplotlib.font_manager as fm
+
+
 #### 登陆系统 ####
 lg = bs.login()
 # 显示登陆返回信息
@@ -50,6 +53,12 @@ print(result1)
 #### 转换数据型 ####
 result1 = result1['tradeStatus'].astype(float)
 #### 生成图表 ####
-result1.plot(kind='bar')
+result1.plot(kind='bar', label='hhh')
+ax = plt.subplots()
+box = ax.__getitem__()
+plt.set_position([box.x0, box.y0, box.width*0.8 , box.height])
+plt.legend(loc='best', fontsize=12, frameon=True, fancybox=True, framealpha=0.2, borderpad=0.3,
+           ncol=1, markerfirst=True, markerscale=1, numpoints=1, handlelength=3.5)    #可以用ax.legend,也可以用plt.legend
+
 plt.show()
 
