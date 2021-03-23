@@ -24,7 +24,7 @@ print('login respond  error_msg:'+lg.error_msg)
 
 # 详细指标参数，参见“历史行情指标参数”章节；“周月线”参数与“日线”参数不同。
 # 周月线指标：date,code,open,high,low,close,volume,amount,adjustflag,turn,pctChg
-rs = bs.query_history_k_data_plus("sh.000001",
+rs = bs.query_history_k_data_plus("sh.000002",
     "date,code,open,high,low,close,preclose,volume,amount,pctChg",
     start_date='2019-01-01', end_date='2019-06-30', frequency="d")
 print('query_history_k_data_plus respond error_code:'+rs.error_code)
@@ -57,56 +57,105 @@ for r in Sh:
     print(result_dates)
 '''
 # 求5日均线的值
-    # 转换数据类型
+# 转换数据类型
 result = result.astype({'close': float})
 print(result)
-#result = result.astype({'amount': float})
+# result = result.astype({'amount': float})
 
-    # 设置列表存储数据
+# 设置列表存储数据
 close_s = []
 close_c = []
- # code固定情况下，定义时间
+# code固定情况下，定义时间
 date_list = result.loc[0:5,'date']
 sum_date = date_list.sum()
-Th = result[result['date'].isin(['2019-01-02'])].index.values
-date_close = []
-total = 0.0
-for i in range(5):
-    date_close.append(result.loc[(Th+i),'close'])
-date_c = pd.DataFrame(date_close,columns=['date','date_close'])
-print(date_c)
-while(i < len(date_close)):
-    total = total + date_close[i]
-    i = i+1
-    # 收盘价close的百分比
-print(total)
+
+# 方法1：根据某个固定code与时间的，5日线求和函数
+# def total_5(Th):
+#     # Th = result[result['date'].isin(['2019-01-08'])].index.values 例子.根据日期得到所在行
+#     # Th = result[result['date'].isin([rdate])].index.values
+#     # print(Th[0])
+#     date_close = []
+#
+#     for i in range(5):
+#         date_close.append(result.loc[(Th-i),'close'])
+#         print(date_close)
+#     date_c = pd.DataFrame(date_close,index=[0,1,2,3,4])
+#     print(date_c)
+#     #print(date_c.loc[0,0])
+#     total = 0.0
+#     for i in range(len(date_close)):
+#         total = total + date_c.loc[i,(Th-i)]
+#         print(total)
+#         # print(Th[0]+i)
+#         i = i+1
+#         # 收盘价close的百分比
+#     # total为5日close总和
+#     print(total)
+#     return total
+
+# 方法2：根据某个固定code与时间的，5日线求和函数
+def total_5(Th):
+    # Th = result[result['date'].isin(['2019-01-08'])].index.values 例子.根据日期得到所在行
+    # Th = result[result['date'].isin([rdate])].index.values
+    # print(Th[0])
+    date_close = []
+
+    for i in range(5):
+        date_close.append(result.loc[(Th-i),'close'])
+        print(date_close)
+    date_c = pd.DataFrame(date_close,index=[0,1,2,3,4])
+    print(date_c)
+    #print(date_c.loc[0,0])
+    total = 0.0
+    for i in range(len(date_close)):
+        total = total + date_close[i]
+        print(total)
+        i = i+1
+        # 收盘价close的百分比
+    # total为5日close总和
+    total5 = total/5
+    print(total/5)
+    return total5
+
+#print(total_5('2019-01-05'))
 close_c = result.groupby(by='code')['close'].sum()
+
+#print(close_c)
+#print(close_s)
+
+# code的不重复名单
 close_s = result.groupby(by='code')['close'].sum()
-print(close_c)
-print(close_s)
-'''
-    sum_close = sum(result['close'])
-    rowVal = []
-    for i in range(len(close_s)):
-        rowValArray = []
-        rowValArray.append('')
-        rowValArray.append(close_s.iloc[i])
-        rowVal.append(rowValArray)
-    # 生成close_S是close求和后的汇总表
-    close_S = pd.DataFrame(rowVal, columns=['code', 'close'])
-    close_S['code'] = result['code'].unique()
-    '''
-'''
+sum_close = sum(result['close'])
+rowVal = []
+for i in range(len(close_s)):
+    rowValArray = []
+    rowValArray.append('')
+    rowValArray.append(close_s.iloc[i])
+    rowVal.append(rowValArray)
+# 生成close_S是close求和后的汇总表
+close_S = pd.DataFrame(rowVal, columns=['code', 'close'])
+close_S['code'] = result['code'].unique()
+print(close_S)
+
 # 根据code，求出code在close_S中的所在行
-    date_Sh = date_S[date_S['code'].isin([r])].index.values
-time_list = result.loc[:,'close']
-for (r in time_list):
-    time5 = time_list[r]
-'''
-'''
+result_date = result[result['code'].isin(['sh.000002'])].index.values
+time_list = result_date.tolist()
+print(time_list)
+list_5 = []
+for t in time_list:
+    p = time_list.index(t)
+    if(p >= 4):
+        print(t)
+        list_5.append(total_5(t))
+    else:
+        list_5.append('0')
+        continue
+print(list_5)
+result['5日线'] = list_5
+
 # 结果集输出到csv文件
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线.csv", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线1.csv", index=False)
 print(result)
-'''
+
 # 登出系统
 bs.logout()
