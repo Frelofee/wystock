@@ -4,6 +4,7 @@
 import baostock as bs
 import pandas as pd
 from datetime import datetime
+from itertools import chain
 
 # 登陆系统
 lg = bs.login()
@@ -22,40 +23,45 @@ print('login respond  error_msg:'+lg.error_msg)
 # 主题指数，例如：sh.000015 红利指数，sh.000063 上证周期 等；
 
 
-# 详细指标参数，参见“历史行情指标参数”章节；“周月线”参数与“日线”参数不同。
-# 周月线指标：date,code,open,high,low,close,volume,amount,adjustflag,turn,pctChg
-rs = bs.query_history_k_data_plus("sh.000002",
-    "date,code,open,high,low,close,preclose,volume,amount,pctChg",
-    start_date='2019-01-01', end_date='2019-06-30', frequency="d")
-print('query_history_k_data_plus respond error_code:'+rs.error_code)
-print('query_history_k_data_plus respond  error_msg:'+rs.error_msg)
+#### 登陆系统 ####
+lg = bs.login()
+# 显示登陆返回信息
+print('login respond error_code:'+lg.error_code)
+print('login respond  error_msg:'+lg.error_msg)
 
-# 打印结果集
-data_list = []
-while (rs.error_code == '0') & rs.next():
+#### 获取历史K线数据 ####
+# 详细指标参数，参见“历史行情指标参数”章节
+cd = bs.query_all_stock(day="2021-03-15")
+cd_list = []
+while (cd.error_code == '0') & cd.next():
     # 获取一条记录，将记录合并在一起
-    data_list.append(rs.get_row_data())
+    cd_list.append(cd.get_row_data())
+result1 = pd.DataFrame(cd_list, columns=cd.fields)
+print(result1)
+
+# 结果切片
+# result1.drop([i for i in range(0,4700)],inplace=True)
+
+# dataframe columns to list
+rlist = result1.code.values.tolist()
+# 求数组长度 rnum = len(rlist)
+data_list = []
+# 遍历list
+for r in rlist:
+	rs = bs.query_history_k_data_plus(r,
+	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
+	    start_date='2021-03-11', end_date='2021-03-19',
+	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
+	print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
+	#### 打印结果集 ####
+	while (rs.error_code == '0') & rs.next():
+	    # 获取一条记录，将记录添加到data_list
+	    data_list.append(rs.get_row_data())
+
+
+# list转化pd
 result = pd.DataFrame(data_list, columns=rs.fields)
-'''
-Sh = close_S['code']
-result_css = []
-for r in Sh:
-    # 根据code，求出code在close_S中的所在行
-    close_Sh = close_S[close_S['code'].isin([r])].index.values
-    # 根据所在行，求出code对应的close总和
-    close_Shh = close_S.loc[(close_Sh),('close')]
-    # 求出code在原表中的所在行
-    result_a = result[result['code'].isin([r])].index.values
-    result_cs = []
-    result_dates = []
-    for r in result_a:
-        result_c = result.loc[r,['close']]
-        result_c = float(result_c)
-        result_cc = result_c/close_Shh
-        result_cs.append(float(result_cc))
-        result_dates.append("{}".format(result.loc[r, ['date']]['date']))
-    print(result_dates)
-'''
+
 # 求5日均线的值
 # 转换数据类型
 result = result.astype({'close': float})
@@ -99,7 +105,6 @@ def total_5(Th):
     # Th = result[result['date'].isin([rdate])].index.values
     # print(Th[0])
     date_close = []
-
     for i in range(5):
         date_close.append(result.loc[(Th-i),'close'])
         print(date_close)
@@ -117,11 +122,6 @@ def total_5(Th):
     print(total/5)
     return total5
 
-#print(total_5('2019-01-05'))
-close_c = result.groupby(by='code')['close'].sum()
-
-#print(close_c)
-#print(close_s)
 
 # code的不重复名单
 close_s = result.groupby(by='code')['close'].sum()
@@ -137,24 +137,52 @@ close_S = pd.DataFrame(rowVal, columns=['code', 'close'])
 close_S['code'] = result['code'].unique()
 print(close_S)
 
-# 根据code，求出code在close_S中的所在行
-result_date = result[result['code'].isin(['sh.000002'])].index.values
-time_list = result_date.tolist()
-print(time_list)
+Sh = close_S['code']
+yq = []
 list_5 = []
-for t in time_list:
-    p = time_list.index(t)
-    if(p >= 4):
-        print(t)
-        list_5.append(total_5(t))
-    else:
-        list_5.append('0')
-        continue
-print(list_5)
-result['5日线'] = list_5
+for r in Sh:
+    # 根据code，求出code在close_S中的所在行
+    result_date = result[result['code'].isin([r])].index.values
+    time_list = result_date.tolist()
+    print(time_list)
+
+    for t in time_list:
+        p = time_list.index(t)
+        if(p >= 4):
+            print(t)
+            list_5.append(total_5(t))
+        else:
+            list_5.append('0')
+            continue
+    print(list_5)
+result['5rx'] = list_5
+
+for r in Sh:
+    yq_5 = [0]
+    result_date = result[result['code'].isin([r])].index.values
+    time_list = result_date.tolist()
+    print(time_list)
+    for i in time_list[1:]:
+        print(result.columns.values)
+        close_50 = result.iloc[(i-1),[-1]]
+        close_50 = float(close_50)
+        close_51 = result.iloc[i,[-1]]
+        close_51 = float(close_51)
+        close_52 = close_51+close_51 - close_50
+        close_52 = float(close_52)
+        if(close_52 < close_51):
+            yq_5.append('1')
+        else:
+            yq_5.append('0')
+            continue
+    yq.append(yq_5)
+    print(yq)
+    # 多维数组转一维数组
+yq = list(chain.from_iterable(yq))
+result['5yq'] = yq
 
 # 结果集输出到csv文件
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线1.csv", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线4.csv", index=False)
 print(result)
 
 # 登出系统
