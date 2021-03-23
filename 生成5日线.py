@@ -40,7 +40,7 @@ result1 = pd.DataFrame(cd_list, columns=cd.fields)
 print(result1)
 
 # 结果切片
-# result1.drop([i for i in range(0,4700)],inplace=True)
+result1.drop([i for i in range(0,4720)],inplace=True)
 
 # dataframe columns to list
 rlist = result1.code.values.tolist()
@@ -50,7 +50,7 @@ data_list = []
 for r in rlist:
 	rs = bs.query_history_k_data_plus(r,
 	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-	    start_date='2021-03-11', end_date='2021-03-19',
+	    start_date='2021-01-11', end_date='2021-03-19',
 	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
 	print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
 	#### 打印结果集 ####
@@ -122,6 +122,28 @@ def total_5(Th):
     print(total/5)
     return total5
 
+# 方法2：根据某个固定code与时间的，60日线求和函数
+def total_60(Th):
+    # Th = result[result['date'].isin(['2019-01-08'])].index.values 例子.根据日期得到所在行
+    # Th = result[result['date'].isin([rdate])].index.values
+    # print(Th[0])
+    date_close = []
+    for i in range(60):
+        date_close.append(result.loc[(Th-i),'close'])
+        print(date_close)
+    date_c = pd.DataFrame(date_close,index=['0:59'])
+    print(date_c)
+    #print(date_c.loc[0,0])
+    total = 0.0
+    for i in range(len(date_close)):
+        total = total + date_close[i]
+        print(total)
+        i = i+1
+        # 收盘价close的百分比
+    # total为5日close总和
+    total5 = total/60
+    print(total/60)
+    return total5
 
 # code的不重复名单
 close_s = result.groupby(by='code')['close'].sum()
@@ -140,6 +162,7 @@ print(close_S)
 Sh = close_S['code']
 yq = []
 list_5 = []
+list_60 = []
 for r in Sh:
     # 根据code，求出code在close_S中的所在行
     result_date = result[result['code'].isin([r])].index.values
@@ -156,6 +179,23 @@ for r in Sh:
             continue
     print(list_5)
 result['5rx'] = list_5
+
+for r in Sh:
+    # 根据code，求出code在close_S中的所在行
+    result_date = result[result['code'].isin([r])].index.values
+    time_list = result_date.tolist()
+    print(time_list)
+
+    for t in time_list:
+        p = time_list.index(t)
+        if (p >= 59):
+            print(t)
+            list_60.append(total_60(t))
+        else:
+            list_60.append('0')
+            continue
+    print(list_60)
+result['60rx'] = list_60
 
 for r in Sh:
     yq_5 = [0]
@@ -182,7 +222,7 @@ yq = list(chain.from_iterable(yq))
 result['5yq'] = yq
 
 # 结果集输出到csv文件
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线4.csv", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线x.csv", index=False)
 print(result)
 
 # 登出系统
