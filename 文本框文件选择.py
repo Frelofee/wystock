@@ -36,7 +36,7 @@ def merge():
         df1=pd.read_excel(i)
         #print(df1)
         df=pd.concat([df,df1],axis=0)
-    df.to_excel('D:/我的成长/2020无敌的我/我的生活：保持良好状态，陶冶生活情操/python学习/素材/test/merge.xlsx',index=False)
+    df.to_excel('C:/Users/Frelofee/Desktop/merge.xlsx',index=False)
 
 if __name__=='__main__':
     merge()
