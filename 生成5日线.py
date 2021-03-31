@@ -222,7 +222,7 @@ yq = list(chain.from_iterable(yq))
 result['5yq'] = yq
 
 # 结果集输出到csv文件
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线x.csv", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线xx.csv", index=False)
 print(result)
 
 # 登出系统
