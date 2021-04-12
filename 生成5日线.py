@@ -50,7 +50,7 @@ data_list = []
 for r in rlist:
 	rs = bs.query_history_k_data_plus(r,
 	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-	    start_date='2021-01-11', end_date='2021-03-19',
+	    start_date='2020-06-11', end_date='2021-03-19',
 	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
 	print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
 	#### 打印结果集 ####
@@ -221,8 +221,10 @@ for r in Sh:
 yq = list(chain.from_iterable(yq))
 result['5yq'] = yq
 
+#最近de收盘价，高于以往的最高点；且以往最高点成交量是前一天的一倍以上
+
 # 结果集输出到csv文件
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线xx.csv", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/5日线lx.csv", index=False)
 print(result)
 
 # 登出系统
