@@ -6,7 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import chain
-
+from mpldatacursor import datacursor
+import gc
 
 #### 登陆系统 ####
 lg = bs.login()
@@ -25,7 +26,8 @@ result1 = pd.DataFrame(cd_list, columns=cd.fields)
 print(result1)
 
 # 结果切片
-#result1.drop([i for i in range(0,4700)],inplace=True)
+result1.drop([i for i in range(0,4200)],inplace=True)
+# result1.drop([i for i in range(4228,-1)],inplace=True)
 
 # dataframe columns to list
 rlist = result1.code.values.tolist()
@@ -35,7 +37,7 @@ data_list = []
 for r in rlist:
 	rs = bs.query_history_k_data_plus(r,
 	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-	    start_date='2021-03-15', end_date='2021-03-19',
+	    start_date='2021-03-13', end_date='2021-04-13',
 	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
 	print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
 	#### 打印结果集 ####
@@ -105,6 +107,8 @@ amount_S['code'] = result['code'].unique()
 # 设置列表存储数据
 Sh = close_S['code']
 result_css = []
+result_Mi = []
+result_R = []
 for r in Sh:
     # 根据code，求出code在close_S中的所在行
     close_Sh = close_S[close_S['code'].isin([r])].index.values
@@ -122,12 +126,28 @@ for r in Sh:
         result_dates.append("{}".format(result.loc[r, ['date']]['date']))
     print(result_dates)
     print(result_cs)
+    # # 求差值
+    # while result_cs[-2] is not None and result_cs[-4] is not None:
+    #     result_minus = result_cs[-2] - result_cs[-4]
+    #     result_R.append(r)
+    #     result_Mi.append(result_minus)
+    # else:
+    #     result_R.append(r)
+    #     result_Mi.append('0')
+    # gc.collect()
     # 作图
-    plt.plot(result_dates, result_cs, label=close_S.loc[(close_Sh),('code')])
+    Line = plt.plot(result_dates, result_cs, label=close_S.loc[(close_Sh),('code')])
+    datacursor(Line)
     # 生成总的百分比表
     result_css.append(result_cs)
+
+# # 导出差值表
+# result_Rm = pd.DataFrame(result_R)
+# result_Rm['minus']=result_Mi
+# result_Rm.to_csv("D:/我的成长/2021开心的我/生活/股票池/Rm1.csv", encoding="gbk", index=False)
 # 多维数组转一维数组
 result_csS = list(chain.from_iterable(result_css))
+
 # 定位图例位置
 plt.legend(loc=2, bbox_to_anchor=(1.02,1.0), borderaxespad=0.1, ncol=1)
 
@@ -151,7 +171,8 @@ for r in Sh:
     print(amount_dates)
     print(amount_cs)
     # 作图
-    #plt.plot(amount_dates, amount_cs, label=close_S.loc[(amount_Sh), ('code')])
+    MLine = plt.plot(amount_dates, amount_cs, label=close_S.loc[(amount_Sh), ('code')])
+    datacursor(MLine)
     # 生成总的百分比表
     result_ass.append(amount_cs)
     # 多维数组转一维数组
@@ -165,9 +186,9 @@ result['newclose'] = result_csS
 result['newamount'] = result_asS
 
 #### 结果集输出到csv文件 ####
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/test6.csv", encoding="gbk", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/test7.csv", encoding="gbk", index=False)
 # 输出图表
-#plt.show()
+plt.show()
 
 
 #### 登出系统 ####
