@@ -22,8 +22,10 @@ Id = Edge_driver.find_element_by_id('fm-login-id')
 Secret = Edge_driver.find_element_by_id('fm-login-password')
 Submit = Edge_driver.find_element_by_class_name('fm-btn')
 print(Edge_driver.current_url)
-Id.send_keys('631538973@qq.com')
-Secret.send_keys('Wy123456az!')
+Id.send_keys('')# 账号
+time.sleep(2)
+Secret.send_keys('')# 密码
+time.sleep(1)
 Submit.click()
 print(Edge_driver.current_url)
 time.sleep(2)
