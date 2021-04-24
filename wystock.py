@@ -8,6 +8,7 @@ import numpy as np
 from itertools import chain
 from mpldatacursor import datacursor
 import gc
+from datetime import datetime
 
 #### 登陆系统 ####
 lg = bs.login()
@@ -17,7 +18,7 @@ print('login respond  error_msg:'+lg.error_msg)
 
 #### 获取历史K线数据 ####
 # 详细指标参数，参见“历史行情指标参数”章节
-cd = bs.query_all_stock(day="2021-03-15")
+cd = bs.query_all_stock(day="2021-04-22")
 cd_list = []
 while (cd.error_code == '0') & cd.next():
     # 获取一条记录，将记录合并在一起
@@ -26,7 +27,7 @@ result1 = pd.DataFrame(cd_list, columns=cd.fields)
 print(result1)
 
 # 结果切片
-result1.drop([i for i in range(0,4200)],inplace=True)
+# result1.drop([i for i in range(0,4200)],inplace=True)
 # result1.drop([i for i in range(4228,-1)],inplace=True)
 
 # dataframe columns to list
@@ -35,13 +36,22 @@ rlist = result1.code.values.tolist()
 data_list = []
 # 遍历list
 for r in rlist:
-	rs = bs.query_history_k_data_plus(r,
+    # 日线
+    rs = bs.query_history_k_data_plus(r,
 	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-	    start_date='2021-03-13', end_date='2021-04-13',
+	    start_date='2021-04-19', end_date='2021-04-23',
 	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
-	print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
-	#### 打印结果集 ####
-	while (rs.error_code == '0') & rs.next():
+
+    # 数据类型，默认为d，日k线；d=日k线、w=周、m=月、5=5分钟、15=15分钟、30=30分钟、60=60分钟k线数据，
+    # 不区分大小写；指数没有分钟线数据；周线每周最后一个交易日才可以获取，月线第月最后一个交易日才可以获取。
+
+    # 周线
+    # rs = bs.query_history_k_data_plus(r,"date,code,open,high,low,close,volume,amount,adjustflag,turn,pctChg",
+    #                                   start_date='2021-04-01', end_date='2021-04-24', frequency="w")
+
+    print('query_history_k_data_plus respond error_code:{}, error_msg:{}'.format(rs.error_code, rs.error_msg))
+    #### 打印结果集 ####
+    while (rs.error_code == '0') & rs.next():
 	    # 获取一条记录，将记录添加到data_list
 	    data_list.append(rs.get_row_data())
 
@@ -53,9 +63,12 @@ result = pd.DataFrame(data_list, columns=rs.fields)
 # 转换数据类型
 print(result)
 print(result.dtypes)
+
 result = result.astype({'close':float})
 result = result.astype({'amount':float})
-print((result['close'].dtypes))
+result['amount'].apply(pd.to_numeric, errors='coerce').fillna(0)
+print(result.dtypes)
+# print((result['close'].dtypes))
 
 # 设置列表存储数据
 close_s = []
@@ -185,8 +198,13 @@ result_asS = list(chain.from_iterable(result_ass))
 result['newclose'] = result_csS
 result['newamount'] = result_asS
 
+# 开始时间
+start_time = datetime.now()
+star_time = ('{}{}-{}{}'.format(start_time.month,start_time.day,start_time.hour,start_time.minute))
+print("开始时间：",start_time)
+
 #### 结果集输出到csv文件 ####
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/test7.csv", encoding="gbk", index=False)
+result.to_csv("D:/我的成长/2021开心的我/生活/股票池/{}stock.csv".format(star_time), encoding="gbk", index=False)
 # 输出图表
 plt.show()
 
