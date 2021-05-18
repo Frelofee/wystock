@@ -1,6 +1,8 @@
-# encoding:utf-8
 # 王琰的python编写
-# 开发时间:2021/3/3 19:04
+# 开发时间:2021/5/6 10:50
+
+import pymysql
+
 import baostock as bs
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,6 +11,11 @@ from itertools import chain
 from mpldatacursor import datacursor
 import gc
 from datetime import datetime
+
+from sqlalchemy import create_engine
+
+
+
 
 #### 登陆系统 ####
 lg = bs.login()
@@ -27,7 +34,7 @@ result1 = pd.DataFrame(cd_list, columns=cd.fields)
 print(result1)
 
 # 结果切片
-# result1.drop([i for i in range(0,4200)],inplace=True)
+# result1.drop([i for i in range(0,4300)],inplace=True)
 # result1.drop([i for i in range(4228,-1)],inplace=True)
 
 # dataframe columns to list
@@ -39,7 +46,7 @@ for r in rlist:
     # 日线
     rs = bs.query_history_k_data_plus(r,
 	    "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-	    start_date='2021-05-06', end_date='2021-05-12',
+	    start_date='2021-05-13', end_date='2021-05-14',
 	    frequency="d", adjustflag="3") #frequency="d"取日k线，adjustflag="3"默认不复权
 
     # 数据类型，默认为d，日k线；d=日k线、w=周、m=月、5=5分钟、15=15分钟、30=30分钟、60=60分钟k线数据，
@@ -207,10 +214,39 @@ star_time = ('{}{}-{}{}'.format(start_time.month,start_time.day,start_time.hour,
 print("开始时间：",start_time)
 
 #### 结果集输出到csv文件 ####
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/{}stock.csv".format(star_time), encoding="gbk", index=False)
+# result.to_csv("D:/我的成长/2021开心的我/生活/股票池/{}stock.csv".format(star_time), encoding="gbk", index=False)
 # 输出图表
-plt.show()
-
+# plt.show()
 
 #### 登出系统 ####
 bs.logout()
+print(result)
+# try:
+#     db = pymysql.connect(host="localhost", user="root", password="wy123456", database="mysql")
+#     print('数据库连接成功')
+#     cur = db.cursor()
+#     # 创建新表
+#     cur.execute("DROP TABLE IF EXISTS Stock")
+#     sql = 'CREATE TABLE Stock(num CHAR(20),date CHAR(20) NOT NULL,code CHAR(20),open CHAR(20),high CHAR(20),\
+#     low CHAR(20),close CHAR(20),preclose CHAR(20),volume CHAR(20),amount CHAR(20),adjustflag CHAR(20),\
+#     turn CHAR(20),tradestatus CHAR(20),pctChg CHAR(20),peTTM CHAR(20),pbMRQ CHAR(20),psTTM CHAR(20),\
+#     pcfNcfTTM CHAR(20),isST CHAR(20),newclose CHAR(20),newamount CHAR(20))'
+#     cur.execute(sql)
+#     # 插入数据
+#     # date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus
+#     # pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST,newclose,newamount
+#
+#     sql1 = 'INSERT INTO Stock(date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,\
+#     pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST,newclose,newamount) VALUE(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\
+#     %s,%s,%s,%s,%s,%s)'
+#     value = (result)
+#     cur.execute(sql1,value)
+#     db.commit()
+# except pymysql.Error as e:
+#     print("数据库连接失败,表格创建失败"+str(e))
+#     db.rollback()
+#
+# db.close()
+
+conn = create_engine('mysql+pymysql://root:wy123456@localhost:3306/mysql?charset=utf8') #创建连接
+pd.io.sql.to_sql(frame=result,name='stock',con=conn.connect(),if_exists='append',schema='mysql',index=False)

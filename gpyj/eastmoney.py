@@ -17,7 +17,8 @@ Edge_driver.get(url)
 Edge_driver.maximize_window()
 
 # 开始时间
-start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+start_time = datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
+star_time = ('{}{}-{}{}'.format(start_time.month,start_time.day,start_time.hour,start_time.minute))
 print("开始时间：",start_time)
 
 # 找到股票信息标签
@@ -43,7 +44,7 @@ for i in range(1,Num+1):
     time.sleep(0.25)
 result = pd.DataFrame(context_Ct)
 
-result.to_csv("D:/我的成长/2021开心的我/生活/股票池/early0423.csv", index=False)
+result.to_excel("D:/我的成长/2021开心的我/生活/股票池/{}early.xlsx".format(star_time), index=False)
 
 
 
